@@ -19,7 +19,11 @@
 		  $rnd =rand(0000000000,9999999999);
 		  $strip_name=str_replace('','_',$_FILES['pics']['name']);
 		  $filename = $rnd.$strip_name;
+		  $destination= './uploads/'.$filename;
 		
+	  if(!move_uploaded_file($_FILES['pics']['tmp_name'],$destination)) {
+		  $errors[]= "File not uploaded";
+		}
 	  if(empty($errors)){
 		   echo "File upload succesfull";
 	    }else{
