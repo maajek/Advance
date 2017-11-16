@@ -26,7 +26,7 @@
 		  $errors[]= "File not uploaded";
 		}
 	  if(empty($errors)){
-		   echo "File upload succesfull";
+		   echo "File upload successfull";
 	    }else{
 		   foreach($errors as $err) {
 			 echo $err. '</br>';
