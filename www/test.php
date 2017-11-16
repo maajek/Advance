@@ -10,7 +10,8 @@
 		  $errors[]="Please select a file" ;
 		}
 	  if($_FILES['pics']['size'] > MAX_FILE_SIZE) {
-		  $errors[]="File too large. Maximum: ".MAX_FILE_SIZE;   
+		  $errors[]="File too large. Maximum: ".MAX_FILE_SIZE;  
+		  $_FILES['pics']['tmp_name']=null; 
 		}
 	  if(!in_array($_FILES['pics']['type'],$ext)){
 		  $errors[]="File format not supported" ;
