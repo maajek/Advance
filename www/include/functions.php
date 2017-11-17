@@ -8,7 +8,7 @@
      $filename = $rnd.$strip_name;
      $destination = $loc.$filename;
 
-    if(move_uploaded_file($file[$name]['tmp_name'],$destination)) {
+    if(move_uploaded_file($files[$name]['tmp_name'],$destination)) {
          $result[] = true;
     }else{
          $result[] =false;
