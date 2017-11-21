@@ -1,92 +1,76 @@
+	
 	<?php
 
-	 $page_title = "Login";
-  include 'include/header.php';
-  include 'include/db.php';
+		session_start();
 
-  include 'include/functions.php';
-      $error = [];
-      
-      if(array_key_exists('register', $_POST)) {
-        
-      
-      if(empty($_POST['email'])){
-         $error['email'] = "Please enter you email" ;
-      }
+		$page_title = "Login";
+		include 'include/header.php';
+		include 'include/db.php';
+		include 'include/functions.php';
 
-      if(empty($_POST['password'])) {
-      	 $error['password']= "Please enter your password";
-      }
+		$errors = [];
 
-      if(empty($error)) {
-            if(validateLogin($conn,$_POST['email'],$_POST['password'])){
-                header("location:testing.php");
+		if (array_key_exists('login', $_POST)) {
+			if (empty($_POST['email'])) {
+				$errors['email'] = "Enter your email";
+			}
 
-      }else{
-               echo "Invalid email/password";
+			if (empty($_POST['password'])) {
+				$errors['password'] = "Enter your password";
+			}
 
-      }
+			if (empty($errors)) {
+				$clean = array_map('trim', $_POST);
 
-        //do data base stuff
+				$data = adminLogin($conn, $clean);
 
-       /* $stmt = $conn->prepare("SELECT FROM admin(email,hash)VALUES(:e,:h)");
-         
-        $data =[ 
-            ":e"=> $email,
-            ":h"=> $hash
-        ];
-           
-        $stmt -> execute($data);*/
-     /*  $stmt = $conn->prepare("SELECT email FROM admin WHERE :e=email");
-       $stmt -> bindParam(":e" , $email);
-       $stmt->execute();
-      
-       $stmt = $conn->prepare("SELECT password FROM admin WHERE :h=hash");
-       $stmt -> bindParam(":h" , $hash);
-       $stmt->execute();
+				if ($data[0]) {
 
-      header ("location:testing.php");*/
+					$details = $data[1];
 
-       
-       }
+					$_SESSION['admin_id'] = $details['admin_id'];
+					$_SESSION['name'] = $details['firstname'] .' '. $details['lastname'];
 
-     }
+					redirect("add-category.php?msg=", "admin successfully logged in");
+				} else {
+					header("location:login.php?msg='Invalid email or password'");
+				}
 
+			}
+		}
 	?>
-
-
-
+	
 	<div class="wrapper">
 		<h1 id="register-label">Admin Login</h1>
 		<hr>
 		<form id="register"  action ="login.php" method ="POST">
 			<div>
-				 <?php 
-                 $data = displayErrors($error,'email');
+			  <?php 
+                 $data = displayErrors($errors,'email');
                  echo $data;
 
-			    ?>
+			  ?>
 				<label>email:</label>
 				<input type="text" name="email" placeholder="email">
 			</div>
 			<div>
-				 <?php 
-                 $data = displayErrors($error,'password');
+			  <?php 
+                 $data = displayErrors($errors,'password');
                  echo $data;
 
-			     ?>
+			  ?>
 				<label>password:</label>
 				<input type="password" name="password" placeholder="password">
 			</div>
 
-			<input type="submit" name="register" value="login">
+			<input type="submit" name="login" value="login">
 		</form>
 
 		<h4 class="jumpto">Don't have an account? <a href="register.php">register</a></h4>
 	</div>
 
 	<?php
-  include 'include/footer.php';
-
-
+		include 'include/footer.php';
 	?>
+
+	
