@@ -19,6 +19,14 @@
       }
 
       if(empty($error)) {
+            if(validateLogin($conn,$_POST['email'],$_POST['password'])){
+                header("location:testing.php");
+
+      }else{
+               echo "Invalid email/password";
+
+      }
+
         //do data base stuff
 
        /* $stmt = $conn->prepare("SELECT FROM admin(email,hash)VALUES(:e,:h)");
@@ -29,7 +37,7 @@
         ];
            
         $stmt -> execute($data);*/
-       $stmt = $conn->prepare("SELECT email FROM admin WHERE :e=email");
+     /*  $stmt = $conn->prepare("SELECT email FROM admin WHERE :e=email");
        $stmt -> bindParam(":e" , $email);
        $stmt->execute();
       
@@ -37,9 +45,9 @@
        $stmt -> bindParam(":h" , $hash);
        $stmt->execute();
 
-      header ("location:testing.php");
+      header ("location:testing.php");*/
 
-
+       
        }
 
      }
