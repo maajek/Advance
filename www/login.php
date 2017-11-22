@@ -1,64 +1,74 @@
-	
+
 	<?php
 
 		session_start();
 
 		$page_title = "Login";
-		include 'include/header.php';
-		include 'include/db.php';
-		include 'include/functions.php';
+		include('include/header.php');
+		include('include/db.php');
+		include('include/functions.php');
 
-		$errors = [];
+		$error = [];
 
-		if (array_key_exists('login', $_POST)) {
-			if (empty($_POST['email'])) {
-				$errors['email'] = "Enter your email";
+		if(array_key_exists('login', $_POST)){
+
+			if(empty($_POST['email'])){
+				$error['email'] = "Please enter your email address";
+			} 
+			if(empty($_POST['password'])){
+				$error['password'] = "Please enter your password";
 			}
+			if(empty($error)){
 
-			if (empty($_POST['password'])) {
-				$errors['password'] = "Enter your password";
-			}
-
-			if (empty($errors)) {
 				$clean = array_map('trim', $_POST);
 
 				$data = adminLogin($conn, $clean);
 
-				if ($data[0]) {
+				if($data[0]){
 
 					$details = $data[1];
 
-					$_SESSION['admin_id'] = $details['admin_id'];
-					$_SESSION['name'] = $details['firstname'] .' '. $details['lastname'];
+					$_SESSION['admin_id'] = $details['admin_id']; // $details[0] would also work since we used FETCH_BOTH
+					$_SESSION['name'] = $details['firstName'].' '.$details['lastName'];
 
-					redirect("add-category.php?msg=", "admin successfully logged in");
-				} else {
-					header("location:login.php?msg='Invalid email or password'");
+					redirect("add_category.php?msg=","Login successful"); 
+					/*header("Location:add_category.php");*/
+
+				} else{
+					header('Location:login.php?msg="Invalid email/password"');
 				}
 
+/*
+				if(validateLogin($conn, $_POST['email'], $_POST['password'])){
+					echo "Login successful";
+				} else{
+					echo "Invalid email/password";
+				}*/
+
+
 			}
+
 		}
+
+
+
+
 	?>
-	
 	<div class="wrapper">
 		<h1 id="register-label">Admin Login</h1>
 		<hr>
 		<form id="register"  action ="login.php" method ="POST">
 			<div>
-			  <?php 
-                 $data = displayErrors($errors,'email');
-                 echo $data;
-
-			  ?>
+				<?php $data = displayErrors($error, 'email');
+				echo $data;
+				?>			
 				<label>email:</label>
 				<input type="text" name="email" placeholder="email">
 			</div>
 			<div>
-			  <?php 
-                 $data = displayErrors($errors,'password');
-                 echo $data;
-
-			  ?>
+				<?php $data = displayErrors($error, 'email');
+				echo $data;
+				?>
 				<label>password:</label>
 				<input type="password" name="password" placeholder="password">
 			</div>
@@ -70,7 +80,7 @@
 	</div>
 
 	<?php
-		include 'include/footer.php';
-	?>
 
-	
+		include('include/footer.php');
+
+	?>

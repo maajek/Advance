@@ -1,110 +1,275 @@
 <?php
+	function uploadFile($files, $name, $loc){ // passing parameters into uploadFile function
+		$result = []; // initializing $result array
 
-	function adminRegister($dbconn, $input){
+		$rnd = rand(0000000000, 9999999999); // to initialize a random number
+		$strip_name = str_replace(' ', '_', $files[$name]['name']); // replace white spaces with "underscore _"
 
-		$hash = password_hash($input['password'], PASSWORD_BCRYPT);
+		$fileName = $rnd.$strip_name; // concatinate random number and new name
+		$destination = $loc.$fileName; // concatinate location and filename to set destination
 
-			$statement = $dbconn->prepare("INSERT INTO admin(firstname, lastname, email, hash) VALUES(:f, :l, :e, :h)");
+		if(move_uploaded_file($files[$name]['tmp_name'], $destination)){ // to check if file has been moved
+			$result[] = true;
+			$result[] = $destination;
 
-			$data = [":f" => $input['fname'],
-					":l" => $input['lname'],
-					":e" => $input['email'],
-					":h" => $hash
-			];
+		} else{
+			$result[] = false;
+		}
 
-			$statement->execute($data);
+
+		return $result;
+
 	}
 
-	function doesEmailExist($dbconn, $email) {
+	function doAdminRegister($dbconn, $input){
+		$hash = password_hash($input['password'], PASSWORD_BCRYPT); // this line is to encrypt the password
+		$stmt = $dbconn->prepare("INSERT INTO admin(firstName, lastName, email, hash)
+			VALUES(:f, :l, :e, :h)");
+		$data = [
+			":f" => $input['fname'],
+			":l" => $input['lname'],
+			":e" => $input['email'],
+			":h" => $hash
+		];
+		$stmt->execute($data);
+	}
+
+	function doesEmailExist($dbconn, $email){
 		$result = false;
 
-		$statement = $dbconn->prepare("SELECT email FROM admin WHERE :e=email");
+		$stmt = $dbconn->prepare("SELECT email FROM admin WHERE :e=email");
 
-		$statement->bindParam(":e", $email);
-		$statement->execute();
+		$stmt->bindParam(":e", $email);
 
-		$count = $statement->rowCount();
+		$stmt->execute();
+		$count = $stmt->rowCount();
 
-		if($count > 0) {
+		if($count > 0){
 			$result = true;
 		}
 
 		return $result;
 	}
 
-	function displayErrors($errors, $name) {
-
+	// validation for input errors
+	function displayErrors($err, $name){
 		$result = "";
 
-		if (isset($errors[$name])) {
-			'<span class="err">' .$errors[$name]. '</span>';
+		if(isset($err[$name])){
+			$result = '<p class="err">'.$err[$name].'</p>';
 		}
 
 		return $result;
 	}
 
 
+/*
+	function validateLogin($dbconn, $email, $password){
+		$result = "";
+
+		$stmt=$dbconn->prepare("SELECT * FROM admin WHERE :e=email");
+		$stmt->bindParam(":e", $email);
+		$stmt->execute();
+
+		while($fetch=$stmt->fetch(PDO::FETCH_ASSOC)){
+			$hash = $fetch['hash'];
+			if(password_verify($password, $hash)){
+				header("location:home.php");
+				$result = true;
+			} else{
+				$msg = "incorrect email/password";
+				header("location:login.php?msg=$msg");
+				$result = false;
+			}
+			return $result;
+
+		}
+
+
+	}*/
+
+
 	function adminLogin($dbconn, $input){
+
 		$result = [];
 
-		$statement = $dbconn->prepare("SELECT * FROM admin WHERE email=:e");
+		$stmt = $dbconn->prepare("SELECT * FROM admin WHERE email=:e");
 
-		$statement->bindParam(':e', $input['email']);
-		$statement->execute();
+		$stmt->bindParam(":e", $input['email']);
 
-		$count = $statement->rowCount();
-		$row = $statement->fetch(PDO::FETCH_ASSOC);
+		$stmt->execute();
 
-		if ($count != 1 || !password_verify($input['password'], $row['hash'])) {
-			$result[] = false;
-		}else {
+		$count = $stmt->rowCount();
+		$row = $stmt->fetch(PDO::FETCH_BOTH); // Could also use FETCH_BOTH which fetches both the key and value pair
+
+		/*print_r($count); exit();*/ // To check what values or errors you have exit() is to stop the printing
+
+		if($count != 1 || !password_verify($input['password'], $row['hash'])){ //if it's not equal to 1, it means it did not fetch the email from the database {email does not exist}
+
+		$result[] = false;
+
+		} else{
 			$result[] = true;
 			$result[] = $row;
 		}
 
 		return $result;
+
 	}
 
 
 	function addCategory($dbconn, $input){
-		$statement = $dbconn->prepare("INSERT INTO category(category_name) VALUES(:catName)");
+		$stmt = $dbconn->prepare("INSERT INTO category(category_name) VALUES(:catName)");
 
-		$statement->bindParam(':catName', $input['cat_name']);
+		$stmt->bindParam(':catName', $input['cat_name']);
 
-		$statement->execute();
+		$stmt->execute();
 	}
 
 	function checkLogin(){
-		if (!isset($_SESSION['admin_id'])) {
-			header("location: login.php");
+		if(!isset($_SESSION['admin_id'])){
+			redirect("login.php");
 		}
 	}
 
-
 	function redirect($location, $msg){
 
-		header("location: ".$location.$msg);
-
+		header("Location: ".$location.$msg);
 	}
+
 
 
 
 	function viewCategory($dbconn){
-
 		$result = "";
 
-		$statement = $dbconn->prepare("SELECT * FROM category");
+		$stmt = $dbconn->prepare("SELECT * FROM category");
 
-		$statement->execute();
+		$stmt->execute();
 
-		while ($row = $statement->fetch(PDO::FETCH_BOTH)) {
-			
-			$result .= '<tr><td>' .$row[0]. '</td>';
-			$result .= '<td>' .$row[1]. '</td>';
-			$result .= '<td><a href="edit-category.php?cat_id='.$row[0].'">edit</a></td>';
-			$result .= '<td><a href="edit-category.php?cat_id='.$row[0].'">delete</a></td></tr>';
+		while($row = $stmt->fetch(PDO::FETCH_BOTH)){
+			$result .= '<tr><td>'.$row[0].'<td>';
+			$result .= '<td>'.$row[1].'<td>';
+			$result .= '<td><a href="edit_category.php?cat_id='.$row[0].'">edit</a></td>';
+			$result .= '<td><a href="delete_category.php?cat_id='.$row[0].'">delete</a></td></tr>';
+		}
+
+		return $result;
+	}
 
 
+	function getCategoryById($dbconn, $id){
+
+
+		$stmt = $dbconn->prepare("SELECT * FROM category WHERE category_id =:catId");
+
+		$stmt->bindParam('catId', $id);
+
+		$stmt->execute();
+
+		$row = $stmt->fetch(PDO::FETCH_BOTH);
+
+		return $row;
+	}
+
+
+
+	function updateCategory($dbconn, $input){
+
+		$stmt = $dbconn->prepare("UPDATE category SET category_name =:catName WHERE category_id =:catID");
+
+		$data = [
+			":catName" => $input['cat_name'],
+			":catID" => $input['id']
+		];
+
+		$stmt->execute($data);
+	}
+
+
+
+	function curNave($page){
+
+		$curPage = basename($_SERVER['SCRIPT_FILENAME']);
+
+		if($curPage == $page){
+			echo 'class="selected"';
+		}
+	}
+
+	function deleteCategory($dbconn, $input){
+		$stmt = $dbconn->prepare("DELETE FROM category WHERE category_name =:catName AND category_id =:catID");
+
+		$data = [
+			":catID" => $input['id'],
+			":catName" => $input['cat_name']
+		];
+
+		$stmt->execute($data);
+	}
+
+
+	function numeric($input){
+		$result = false;
+
+		if(!is_numeric($input)){
+			$result = true;
+		}
+		return $result;
+	}
+
+	function addProduct($dbconn, $input){
+		$stmt  = $dbconn->prepare("INSERT INTO books(title, author, price, publication_date, category_id, flag, img_path) 
+			VALUES(:t,:a,:p,:pub,:cat,:fl,:img)");
+
+		$data = [
+			":t" => $input['title'],
+			":a" => $input['author'],
+			":p" => $input['price'],
+			":pub" => $input['pub_date'],
+			":cat" => $input['cat'],
+			":fl" => $input['flag'],
+			":img" => $input['dest']
+
+		];
+
+		$stmt ->execute($data);
+
+	}
+
+
+
+	function fetchCategory($dbconn, $val=null){
+		$result = "";
+
+		$stmt = $dbconn->prepare("SELECT * FROM category");
+
+		$stmt->execute();
+
+		while($row = $stmt->fetch(PDO::FETCH_BOTH)){
+			$result .= '<option value="'.$row[0].'">'.$row[1].'</option>';
+		}
+
+		return $result;
+	}
+
+
+
+	function viewProducts($dbconn){
+		$result = "";
+
+		$stmt = $dbconn->prepare("SELECT * FROM books");
+
+		$stmt->execute();
+
+		while($row = $stmt->fetch(PDO::FETCH_BOTH)){
+			$result .= '<tr><td>'.$row[1].'</td>';
+			$result .= '<td>'.$row[2].'</td>';
+			$result .= '<td>'.$row[3].'</td>';
+			$result .= '<td>'.$row[5].'</td>';
+			$result .= '<td><img src="'.$row[7].'" height="50" width="50"></td>';
+			$result .= '<td><a href="edit_products.php?book_id='.$row[0].'">edit</a></td>';
+			$result .= '<td><a href="delete_products.php?book_id='.$row[0].'">delete</a></td></tr>';
 		}
 
 		return $result;
@@ -112,42 +277,9 @@
 	}
 
 
-	function getCategoryById($dbconn, $id){
 
-		$statement = $dbconn->prepare("SELECT * FROM category WHERE category_id=:catId");
-
-		$statement->bindParam(':catId', $id);
-		$statement->execute();
-
-		$row = $statement->fetch(PDO::FETCH_BOTH);
-
-		return $row;
-	}
-
-
-	function updateCategory($dbconn, $input){
-
-		$statement = $dbconn->prepare("UPDATE category SET category_name=:catName WHERE category_id=:catId");
-
-		$data = [
-			":catName" => $input['edit_category'],
-			":catId" => $input['id']
-		];
-
-		$statement->execute($data);
-
-	}
-
-	function curNav($page){
-
-		$curPage = basename($_SERVER['SCRIPT_FILENAME']);
-
-		if ($curPage == $page) {
-			echo "class='selected'";
-
-		}
-
-	}
 
 
 ?>
+
+

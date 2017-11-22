@@ -2,7 +2,7 @@
 
 		session_start();
 
-		$page_title = "Admin Dashboard";
+		$page_title="Admin Dashboard";
 
 		include 'include/functions.php';
 		include 'include/dashboard-header.php';
@@ -20,8 +20,7 @@
 			if (empty($errors)) {
 				$clean = array_map('trim', $_POST);
 
-				addCategory($conn, $clean);
-
+				addCategory($conn, $clean);`
 				header("location: view-category.php");
 			}
 		}
