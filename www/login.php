@@ -31,7 +31,7 @@
 					$_SESSION['admin_id'] = $details['admin_id']; // $details[0] would also work since we used FETCH_BOTH
 					$_SESSION['name'] = $details['firstName'].' '.$details['lastName'];
 
-					redirect("add_category.php?msg=","Login successful"); 
+					redirect("add-category.php?msg=","Login successful"); 
 					/*header("Location:add_category.php");*/
 
 				} else{

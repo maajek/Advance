@@ -5,7 +5,7 @@
 		$page_title="Admin Dashboard";
 
 		include 'include/functions.php';
-		include 'include/dashboard-header.php';
+		include 'include/dashboard_header.php';
 		include 'include/db.php';
 
 		checkLogin();
@@ -20,8 +20,8 @@
 			if (empty($errors)) {
 				$clean = array_map('trim', $_POST);
 
-				addCategory($conn, $clean);`
-				header("location: view-category.php");
+				addCategory($conn, $clean);
+				header("location: view_category.php");
 			}
 		}
 

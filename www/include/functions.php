@@ -148,8 +148,8 @@
 		$stmt->execute();
 
 		while($row = $stmt->fetch(PDO::FETCH_BOTH)){
-			$result .= '<tr><td>'.$row[0].'<td>';
-			$result .= '<td>'.$row[1].'<td>';
+			$result .= '<tr><td>'.$row[0].'</td>';
+			$result .= '<td>'.$row[1].'</td>';
 			$result .= '<td><a href="edit_category.php?cat_id='.$row[0].'">edit</a></td>';
 			$result .= '<td><a href="delete_category.php?cat_id='.$row[0].'">delete</a></td></tr>';
 		}
@@ -171,7 +171,20 @@
 
 		return $row;
 	}
+    
+    function getProductbyId($dbconn, $id){
 
+      $stmt = $dbconn->prepare("SELECT * FROM books WHERE book_id = :bid");
+      $stmt -> bindParam('bid', $id);
+
+      $stmt -> execute();
+
+      $row = $stmt->fetch(PDO::FETCH_BOTH);
+
+      return $row; 
+
+
+    }
 
 
 	function updateCategory($dbconn, $input){
@@ -185,6 +198,23 @@
 
 		$stmt->execute($data);
 	}
+
+     function updateProductbyId($dbconn, $input){
+
+       $stmt = $dbconn->prepare("UPDATE books SET title =:t, author =:a, price=:p, publication_date=:pdate WHERE book_id =:bid" );
+
+       $data = [
+          ":t" => $input['title'],
+          ":a" => $input['author'],
+          ":p" => $input['price'],
+          ":pdate" => $input['pub_date'],
+          ":bid" =>$input['id']
+       ];
+
+       $stmt -> execute($data);
+
+
+     }
 
 
 
@@ -206,6 +236,18 @@
 		];
 
 		$stmt->execute($data);
+	}
+
+	function deleteProduct($dbconn, $input){
+        $stmt = $dbconn ->prepare("DELETE FROM books WHERE book_id=:bid ");
+
+       $data =[
+          ":bid" =>$input['id']
+        ];
+
+        $stmt ->execute($data);
+
+
 	}
 
 
@@ -268,8 +310,8 @@
 			$result .= '<td>'.$row[3].'</td>';
 			$result .= '<td>'.$row[5].'</td>';
 			$result .= '<td><img src="'.$row[7].'" height="50" width="50"></td>';
-			$result .= '<td><a href="edit_products.php?book_id='.$row[0].'">edit</a></td>';
-			$result .= '<td><a href="delete_products.php?book_id='.$row[0].'">delete</a></td></tr>';
+			$result .= '<td><a href="edit_product.php?book_id='.$row[0].'">edit</a></td>';
+			$result .= '<td><a href="delete_product.php?book_id='.$row[0].'">delete</a></td></tr>';
 		}
 
 		return $result;
