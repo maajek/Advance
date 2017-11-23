@@ -1,32 +1,31 @@
 <?php
-	session_start();
-	$page_title = "Admin Dashboard";
 	
+	$page_title = "Add Products";
+
 	include('include/functions.php');
+
 	include('include/dashboard_header.php');
 
 	include('include/db.php');
+	
+	//checkLogin();
 
-
-	checkLogin();
-
- if($_GET['book_id']){
+if($_GET['book_id']){
 
  	$book_id = $_GET['book_id'];
  }
 
     $item = getProductbyId($conn, $book_id);
+           
+	$category = getCategoryById($conn, $item[5]);
 
+	$error = [];
 
-
-  	$error = [];
-
-	$flag = ['Top-Selling', 'Trending', 'Recently-Viewd'];
 
 	$stmt = $conn->prepare("SELECT * FROM category");
 	$stmt -> execute();
 
-if(array_key_exists('add', $_POST)){
+	if(array_key_exists('add', $_POST)){
 	
 		if(empty($_POST['title'])){
 			$error['title']= "Please enter Book title";
@@ -54,20 +53,22 @@ if(array_key_exists('add', $_POST)){
 			$error['cat']= "Select a category";
 		}
 
-		if(empty($_POST['flag'])){
-			$error['flag']= "Select a flag";
-		}
 
 		if(empty($error)){
+           $clean =array_map('trim', $_POST);
+           $clean['id'] = $book_id;
 
-			$clean = array_map('trim', $_POST);
-		  
-		  $clean['id'] = $book_id;
-
-          updateProductbyId($conn, $clean);
-
+			updateProductbyid($conn, $clean);
 			redirect("view_products.php");
 
+
+
+			/*$row = $stmt->fetch(PDO::FETCH_BOTH);
+
+			$cat_id = $row[0];
+
+			addProduct($conn, $_POST, $cat_id);
+			redirect("add_products.php");*/
 		}
 
 	}
@@ -76,7 +77,7 @@ if(array_key_exists('add', $_POST)){
 <div class="wrapper">
 		<h1 id="register-label">Edit products</h1>
 		<hr>
-		<form id="register"  action ="" method ="POST" enctype="multipart/form-data">
+		<form id="register"  action ="" method ="POST">
 			<div>
 				<?php 
 				$info = displayErrors($error, 'title');
@@ -119,31 +120,22 @@ if(array_key_exists('add', $_POST)){
 				?>
 				<label>Category:</label> 
 				<select name="cat">
-					<option>Select Category</option>
+					<option value="<?php echo $category[1]; ?>"><?php echo $category[1]; ?></option>
 					<?php
-						$data = fetchCategory($conn);
+						$data = fetchCategory($conn, $category[1]);
 						echo $data;
 					?>
 				</select>
 
 			</div>
-			<div>
-				<?php 
-					$info = displayErrors($error,'flag');
-					echo $info;
-				?>
-				<label>Flag:</label>
-				<select name="flag">
-					<option>Select Flag</option>
-					<?php foreach ($flag as $fl) {?>
-					<option value="<?php echo $fl ?>">
-						<?php echo $fl ?>
-					</option>
-					<?php } ?>
 
-				</select>
-			</div>
 
-			<p><input type="submit" name="add" value="Edit"></p>
+			<p><input type="submit" name="add" value="Edit Product"></p>
 		</form>
+		<h4 class="jumpto">To edit product image? <a href='edit_image.php?img=<?php echo $book_id; ?>'>Click here</a></h4>
 	</div>
+
+
+	<?php
+		include('include/footer.php');
+	?>

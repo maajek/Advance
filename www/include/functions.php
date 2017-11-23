@@ -163,7 +163,7 @@
 
 		$stmt = $dbconn->prepare("SELECT * FROM category WHERE category_id =:catId");
 
-		$stmt->bindParam('catId', $id);
+		$stmt->bindParam(':catId', $id);
 
 		$stmt->execute();
 
@@ -175,7 +175,7 @@
     function getProductbyId($dbconn, $id){
 
       $stmt = $dbconn->prepare("SELECT * FROM books WHERE book_id = :bid");
-      $stmt -> bindParam('bid', $id);
+      $stmt -> bindParam(':bid', $id);
 
       $stmt -> execute();
 
@@ -201,13 +201,14 @@
 
      function updateProductbyId($dbconn, $input){
 
-       $stmt = $dbconn->prepare("UPDATE books SET title =:t, author =:a, price=:p, publication_date=:pdate WHERE book_id =:bid" );
+       $stmt = $dbconn->prepare("UPDATE books SET title =:t, author =:a, price=:p, publication_date=:pdate,category_id=:catId WHERE book_id =:bid" );
 
        $data = [
           ":t" => $input['title'],
           ":a" => $input['author'],
           ":p" => $input['price'],
           ":pdate" => $input['pub_date'],
+          ":catId" => $input['cat'],
           ":bid" =>$input['id']
        ];
 
@@ -289,7 +290,14 @@
 		$stmt->execute();
 
 		while($row = $stmt->fetch(PDO::FETCH_BOTH)){
-			$result .= '<option value="'.$row[0].'">'.$row[1].'</option>';
+	
+
+		if($val == $row[1]){
+
+			continue;
+		}
+
+		  $result .= '<option value="'.$row[0].'">'.$row[1].'</option>';
 		}
 
 		return $result;
@@ -317,7 +325,19 @@
 		return $result;
 
 	}
+    
+    function updateimage($dbconn, $id, $location ){
 
+      $stmt = $dbconn->prepare("UPDATE books SET img_path = :img WHERE book_id = :bid");
+
+      $data = [
+          ":img"=>$location,
+          ":bid"=>$id
+       ];
+
+       $stmt->execute($data);
+
+    }
 
 
 
